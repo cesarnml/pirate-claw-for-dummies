@@ -1,0 +1,9 @@
+---
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+import Narration from './Narration.astro';
+
+const { pagination } = Astro.locals.starlightRoute;
+---
+
+<Default {...Astro.props}><slot /></Default>
+<Narration next={pagination?.next?.href} />

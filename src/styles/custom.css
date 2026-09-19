@@ -1,0 +1,12 @@
+body { background-image: var(--pc-glow); background-attachment: fixed; }
+.sl-markdown-content { font-size: 1rem; line-height: 1.75; }
+.sl-markdown-content :is(h1, h2, h3) { font-family: var(--pc-display); letter-spacing: -.018em; }
+.sl-markdown-content h1 { font-size: clamp(2.2rem, 4vw, 3.4rem); line-height: 1.08; }
+.sl-markdown-content h2 { margin-top: 3.3rem; padding-top: 1.25rem; border-top: 1px solid var(--sl-color-hairline); }
+.sl-markdown-content p, .sl-markdown-content li { max-width: 70ch; }
+.sl-markdown-content strong { color: var(--sl-color-white); }
+.sl-markdown-content code { border: 1px solid var(--sl-color-hairline); border-radius: .35rem; padding: .1em .35em; }
+.hero-card { padding: 1.4rem 1.5rem; border: 1px solid var(--sl-color-hairline); border-radius: 1rem; background: color-mix(in srgb, var(--sl-color-bg) 78%, var(--pc-teal)); box-shadow: 0 16px 40px hsl(226 38% 4% / .18); }
+.hero-card p:last-child { margin-bottom: 0; }
+.sl-markdown-content table { font-size: .9rem; }
+.sl-markdown-content th { color: var(--sl-color-text-accent); }

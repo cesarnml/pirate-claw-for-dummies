@@ -1,0 +1,55 @@
+:root {
+  --sl-font: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --sl-font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --pc-display: 'Newsreader Variable', ui-serif, Georgia, serif;
+  --pc-teal: hsl(174 82% 43%);
+  --pc-coral: hsl(8 92% 66%);
+}
+
+:root, :root[data-theme='dark'] {
+  color-scheme: dark;
+  --sl-color-accent-low: hsl(174 60% 14%);
+  --sl-color-accent: var(--pc-teal);
+  --sl-color-accent-high: hsl(173 86% 76%);
+  --sl-color-white: hsl(218 30% 96%);
+  --sl-color-gray-1: hsl(218 22% 89%);
+  --sl-color-gray-2: hsl(219 16% 76%);
+  --sl-color-gray-3: hsl(220 13% 61%);
+  --sl-color-gray-4: hsl(220 14% 42%);
+  --sl-color-gray-5: hsl(220 19% 27%);
+  --sl-color-gray-6: hsl(222 28% 15%);
+  --sl-color-gray-7: hsl(224 33% 11%);
+  --sl-color-black: hsl(226 38% 8%);
+  --sl-color-text: hsl(218 21% 83%);
+  --sl-color-text-accent: hsl(174 82% 62%);
+  --sl-color-bg: hsl(226 38% 8%);
+  --sl-color-bg-nav: hsl(226 38% 7% / .88);
+  --sl-color-bg-sidebar: hsl(224 34% 9%);
+  --sl-color-bg-inline-code: hsl(221 27% 16%);
+  --sl-color-hairline: hsl(220 25% 18%);
+  --pc-glow: radial-gradient(50rem 28rem at 15% -8%, hsl(174 80% 42% / .16), transparent 65%), radial-gradient(44rem 26rem at 98% 7%, hsl(8 92% 62% / .10), transparent 68%);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --sl-color-accent-low: hsl(174 50% 88%);
+  --sl-color-accent: hsl(174 72% 31%);
+  --sl-color-accent-high: hsl(174 78% 22%);
+  --sl-color-white: hsl(223 32% 15%);
+  --sl-color-gray-1: hsl(221 24% 22%);
+  --sl-color-gray-2: hsl(220 16% 34%);
+  --sl-color-gray-3: hsl(220 12% 49%);
+  --sl-color-gray-4: hsl(220 11% 61%);
+  --sl-color-gray-5: hsl(204 21% 84%);
+  --sl-color-gray-6: hsl(198 30% 93%);
+  --sl-color-gray-7: hsl(195 38% 96%);
+  --sl-color-black: hsl(195 46% 98%);
+  --sl-color-text: hsl(222 18% 28%);
+  --sl-color-text-accent: hsl(174 72% 30%);
+  --sl-color-bg: hsl(195 46% 98%);
+  --sl-color-bg-nav: hsl(195 46% 98% / .9);
+  --sl-color-bg-sidebar: hsl(196 41% 96%);
+  --sl-color-bg-inline-code: hsl(194 30% 92%);
+  --sl-color-hairline: hsl(204 21% 84%);
+  --pc-glow: radial-gradient(50rem 28rem at 15% -8%, hsl(174 80% 42% / .13), transparent 65%), radial-gradient(44rem 26rem at 98% 7%, hsl(8 92% 62% / .09), transparent 68%);
+}
