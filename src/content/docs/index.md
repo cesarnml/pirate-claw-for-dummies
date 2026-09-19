@@ -30,8 +30,8 @@ flowchart LR
 
 The screen is a remote control, not the whole machine. The daemon does the
 work. SQLite remembers Pirate Claw's own history. Transmission knows the live
-state of a download. Plex is the best answer to “is this actually in my
-library?” External providers supply candidates and metadata.
+state of a download. Plex is the best answer to the practical question: is it
+actually in my library? External providers supply candidates and metadata.
 
 ### Key takeaway
 
