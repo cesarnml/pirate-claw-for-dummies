@@ -10,7 +10,7 @@ export default function rehypeTts() {
   return (tree) => {
     let counter = 0;
     visit(tree, 'element', (node) => {
-      if (skip.has(node.tagName) || !blocks.has(node.tagName)) return 'skip';
+      if (skip.has(node.tagName) || !blocks.has(node.tagName)) return;
       if (node.children?.some((child) => child.type !== 'text')) return;
       const visible = textOf(node);
       const ranges = splitSentences(visible);
