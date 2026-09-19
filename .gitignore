@@ -3,3 +3,4 @@ dist/
 .astro/
 .tts/
 .vercel/
+.vercel
