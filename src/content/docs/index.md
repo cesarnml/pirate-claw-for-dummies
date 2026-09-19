@@ -49,3 +49,27 @@ Every chapter has the same promise:
 Use the narration control below each title if you want an eyes-off tour. Audio
 is generated locally at build time with Kokoro, not synthesized in your
 browser.
+
+## Guide map
+
+### Start here
+
+- [The big picture](/start-here/the-big-picture/)
+- [Evidence and vocabulary](/start-here/evidence-and-vocabulary/)
+
+### How v1 works
+
+- [Daemon and background work](/architecture/daemon-and-workers/)
+- [Data, caches, and truth](/architecture/data-and-truth/)
+- [Acquisition pipeline](/architecture/acquisition-pipeline/)
+- [Routes, requests, and idle work](/architecture/route-atlas/)
+- [Events and update cascades](/architecture/event-cascades/)
+- [Typed daemon boundary and Hono](/architecture/typed-daemon-boundary/)
+
+### Operating and evolving it
+
+- [Mac target and NAS evidence](/operations/mac-and-nas/)
+- [Observability and debug logs](/operations/observability-and-debugging/)
+- [Providers, TMDB, Plex, and licensing](/reference/providers-and-licensing/)
+- [If we started fresh](/strategy/rebuild-and-roadmap/)
+- [Value and pricing experiment](/strategy/value-and-pricing/)
