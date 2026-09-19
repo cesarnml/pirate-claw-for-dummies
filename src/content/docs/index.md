@@ -1,7 +1,6 @@
 ---
 title: Pirate Claw for Dummies
 description: A narrated field guide to the Pirate Claw v1 system and the lessons it offers v2.
-template: splash
 ---
 
 <div class="hero-card">
