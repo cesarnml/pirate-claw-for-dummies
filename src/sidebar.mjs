@@ -44,6 +44,7 @@ export const sidebar = [
     { label: 'The Mac app path', slug: 'strategy/mac-product' },
     { label: 'Value and pricing', slug: 'strategy/value-and-pricing' },
     { label: 'If we started fresh', slug: 'strategy/rebuild-and-roadmap' },
+    { label: 'The v2 system design tutorial', slug: 'strategy/v2-system-design' },
   ]},
 ];
 

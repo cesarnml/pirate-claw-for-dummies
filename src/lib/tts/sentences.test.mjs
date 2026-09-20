@@ -23,3 +23,14 @@ test('keeps a sentence closed by a curly quote', () => {
     ['Plex answers “is this in my library?”', 'External providers help.'],
   );
 });
+
+test('does not split abbreviations or versions, while preserving every character', () => {
+  const source = 'Use e.g. a version 1.2.3 build. Then retry it.';
+  const ranges = splitSentences(source);
+
+  assert.equal(ranges.map(({ start, end }) => source.slice(start, end)).join(''), source);
+  assert.deepEqual(
+    ranges.map(({ start, end }) => source.slice(start, end).trim()),
+    ['Use e.g. a version 1.2.3 build.', 'Then retry it.'],
+  );
+});

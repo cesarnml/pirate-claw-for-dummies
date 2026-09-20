@@ -83,21 +83,43 @@ if (hasAudio) {
     let timing: Timing | null = null;
     let active = -1;
     let raf = 0;
+    const spans = new Map<number, HTMLElement>();
 
     const setRate = (value: number) => { audio.playbackRate = value; rate.textContent = `${value}×`; miniRate.textContent = `${value}×`; localStorage.setItem('pc-tts-rate', String(value)); };
     setRate(Number(localStorage.getItem('pc-tts-rate') ?? '1'));
     chain.checked = localStorage.getItem('pc-tts-chain') !== '0';
     const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
-    const loadTiming = async () => { if (!timing) { const response = await fetch(`/audio/${key}.json`); if (!response.ok) throw new Error('narration timing unavailable'); timing = await response.json(); document.body.classList.add('tts-seekable'); } return timing; };
+    const loadTiming = async () => {
+      if (!timing) {
+        const response = await fetch(`/audio/${key}.json`);
+        if (!response.ok) throw new Error('narration timing unavailable');
+        timing = await response.json();
+        document.querySelectorAll<HTMLElement>('[data-tts]').forEach((span) => spans.set(Number(span.dataset.tts), span));
+        document.body.classList.add('tts-seekable');
+      }
+      return timing;
+    };
     const highlight = (seconds: number) => {
       if (!timing) return;
-      const next = timing.sentences.findIndex((entry) => seconds >= entry.start && seconds <= entry.end);
-      const index = next === -1 ? Math.max(0, timing.sentences.findIndex((entry) => entry.start > seconds) - 1) : next;
+      let low = 0; let high = timing.sentences.length - 1;
+      while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        if (timing.sentences[middle].end < seconds) low = middle + 1;
+        else high = middle - 1;
+      }
+      const index = Math.min(timing.sentences.length - 1, Math.max(0, low));
       if (index === active) return;
-      document.querySelector<HTMLElement>(`[data-tts="${timing.sentences[active]?.i}"]`)?.classList.remove('tts-active');
+      const previous = timing.sentences[active];
+      if (previous) spans.get(previous.i)?.classList.remove('tts-active');
       active = index;
-      const span = document.querySelector<HTMLElement>(`[data-tts="${timing.sentences[index]?.i}"]`);
+      const span = spans.get(timing.sentences[index]?.i);
       span?.classList.add('tts-active');
+      if (span) {
+        const box = span.getBoundingClientRect();
+        if (box.top < 80 || box.bottom > window.innerHeight - 80) {
+          span.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        }
+      }
     };
     const tick = () => { const percentNumber = (audio.currentTime / (audio.duration || 1)) * 100; const percent = `${percentNumber}%`; fill.style.width = percent; miniFill.style.width = percent; track.setAttribute('aria-valuenow', String(Math.round(percentNumber))); miniTrack.setAttribute('aria-valuenow', String(Math.round(percentNumber))); time.textContent = `${clock(audio.currentTime)} / ${Math.ceil((audio.duration || timing?.duration || 0) / 60)} min`; miniTime.textContent = clock(audio.currentTime); highlight(audio.currentTime); raf = requestAnimationFrame(tick); };
     const start = async () => { await loadTiming(); if (audio.readyState < 1) { audio.load(); await new Promise<void>((resolve) => audio.addEventListener('loadedmetadata', () => resolve(), { once:true })); } const saved = Number(localStorage.getItem(positionKey) ?? 0); if (saved > 1 && audio.currentTime < 1) audio.currentTime = saved; await audio.play(); };

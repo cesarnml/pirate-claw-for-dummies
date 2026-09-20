@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { fromHtml } from 'hast-util-from-html';
 import { visit } from 'unist-util-visit';
 import ffmpeg from 'ffmpeg-static';
-import { speechOf } from '../src/lib/tts/speech.mjs';
+import { speechOf, tidyForSpeech } from '../src/lib/tts/speech.mjs';
 import { readingOrder } from '../src/sidebar.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -21,12 +21,18 @@ function pages() {
   walk(dist);
   return found.map((file) => {
     const rel = path.relative(dist, path.dirname(file)); const key = rel || 'index'; const tree = fromHtml(fs.readFileSync(file, 'utf8'));
-    const sentences = [];
-    visit(tree, 'element', (node) => { const raw = node.properties?.dataTts; if (raw !== undefined) { const speech = speechOf(node); if (speech) sentences.push({ i: Number(raw), speech }); } });
+    const byIndex = new Map();
+    visit(tree, 'element', (node) => {
+      const raw = node.properties?.dataTts;
+      if (raw === undefined) return;
+      const speech = tidyForSpeech(speechOf(node));
+      if (speech) byIndex.set(Number(raw), { i: Number(raw), speech });
+    });
+    const sentences = [...byIndex.values()].sort((left, right) => left.i - right.i);
     return { key, sentences };
   }).filter((page) => allowed.has(page.key) && page.sentences.length);
 }
-const hash = (page) => crypto.createHash('sha256').update(JSON.stringify({ voice, sentences: page.sentences })).digest('hex').slice(0, 16);
+const hash = (page) => crypto.createHash('sha256').update(JSON.stringify({ version: 2, voice, sentences: page.sentences })).digest('hex').slice(0, 16);
 const run = (cmd, args) => new Promise((resolve, reject) => { const child = spawn(cmd, args, { stdio: 'inherit' }); child.on('close', (code) => code === 0 ? resolve() : reject(new Error(`${cmd} exited ${code}`))); child.on('error', reject); });
 
 if (!fs.existsSync(dist)) throw new Error('Run npm run build before npm run narrate.');
