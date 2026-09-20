@@ -1,50 +1,72 @@
 ---
-title: Data, Caches, and Truth
-description: Why Pirate Claw has ledgers, caches, and several valid sources of truth.
+title: Who Owns Each Fact?
+description: A field-by-field truth map for intent, acquisition, download state, metadata, files, and library ownership.
 ---
 
-SQLite is Pirate Claw's memory, but it is not the only authority in the system.
-Its ledgers record what Pirate Claw attempted and observed. Transmission knows
-the live torrent. Plex supplies library-presence evidence. Providers supply
-metadata that can change, fail, or be cached.
+“What is the source of truth?” sounds disciplined. In Pirate Claw it is incomplete. The correct question is: **source of truth for which fact, at what time, and with what confidence?**
 
-## Technical view
+## Six authorities, six jobs
 
 ```mermaid
-erDiagram
-  FEED_ITEMS ||--o{ CANDIDATE_STATE : becomes
-  CANDIDATE_STATE ||--o{ FEED_ITEM_OUTCOMES : records
-  TRACKED_SHOWS ||--o{ MANUAL_GRABS : scopes
-  MANUAL_GRABS }o--|| TMDB_TV_CACHE : enriches
-  MANUAL_MOVIE_GRABS }o--|| TMDB_MOVIE_CACHE : enriches
-  PLEX_MOVIE_CACHE ||--o{ MANUAL_MOVIE_GRABS : confirms
-  PLEX_SHOW_CACHE ||--o{ TRACKED_SHOWS : observes
+flowchart TB
+  INTENT[Config + tracked_shows<br/>future operator intent]
+  HISTORY[Acquisition ledgers<br/>what Pirate Claw attempted]
+  LIVE[Transmission<br/>live torrent state]
+  FILES[Filesystem<br/>bytes and filenames present]
+  LIB[Plex<br/>library observation]
+  META[TMDB/provider caches<br/>identity and description]
 ```
 
-The RSS path uses feed-oriented tables such as `feed_items`, `candidate_state`,
-and `feed_item_outcomes`. TV manual/adopted grabs and movie manual/adopted
-grabs have distinct ledgers because their provenance and identity shapes differ.
-That split is intentional in v1, even if v2 could express both through shared
-domain concepts.
+None can replace the others without losing meaning.
 
-## In plain English
+| Displayed fact | Primary owner | Common trap |
+|---|---|---|
+| Show is tracked | `tracked_shows` and current config | Reconstructing intent from old candidates resurrects untracked shows. |
+| Pirate Claw grabbed a release | RSS or manual acquisition ledger | Plex presence does not prove Pirate Claw acquired it. |
+| Torrent is 63% complete | Transmission | A cached ledger percentage is an observation, not live state. |
+| Movie title, poster, overview, language | TMDB cache | Missing enrichment is not missing acquisition. |
+| Resolution and codec | Release-name parsing/provider result | These may be unknown because naming quality varies. |
+| Episode file exists | Filesystem/adoption evidence | Filename matching can be uncertain. |
+| Media is in the library | Plex GUID/season observation | A failed or stale sync must remain `unknown`. |
 
-Pirate Claw keeps a diary, not a magic answer book. The diary says “we queued
-this,” “this torrent completed,” or “we saw this file.” Plex answers a different
-question: “can I see this in the library right now?”
+## Intent is not history
 
-## Easy win
+Early TV behavior blurred “a show once produced a candidate” with “the owner currently tracks this show.” That creates resurrection: remove a show, restart, and historical rows quietly put it back. The dedicated `tracked_shows` ledger exists to prevent history from rewriting current intent.
 
-Document each displayed field with its owner: ledger, TMDB cache, Plex cache,
-Transmission, or filename parsing. This removes a shocking amount of mystery
-when a poster has no description or a title is marked unknown.
+The same distinction appears in deletion. A deleted acquisition remains historical evidence, but it should no longer count as owned. A later active re-grab should count again. Product semantics live in those transitions; they cannot be reconstructed reliably from one boolean.
 
-## Risky v2 work
+## Observation is timestamped
 
-Merging ledgers, changing identity keys, or rewriting ownership semantics can
-destroy useful provenance. Those are migration projects, not cleanup chores.
+A Plex cache row means “Plex said this at the recorded sync,” not “this is eternally true.” A TMDB overview means “this provider returned this description when refreshed.” A Transmission snapshot means “the torrent was in this state during reconciliation.”
 
-## Key takeaway
+Every cache-backed claim should conceptually carry `observedAt`, even if the UI does not print it on every card. When freshness is unknown, the interface should soften certainty rather than fill the gap with a default.
 
-Do not ask SQLite to prove Plex ownership, and do not ask Plex to explain every
-historical acquisition decision.
+## Provenance is product data
+
+Pirate Claw distinguishes RSS acquisitions, explicit manual grabs, Transmission adoption, filesystem adoption, and Plex catalog observations. Those labels explain why records have different fields and confidence. Removing them would make the schema prettier and support harder.
+
+The Movies archive combines completed RSS candidates and completed manual movie grabs. It intentionally excludes movies merely discovered through Plex or the filesystem because the page means “Pirate Claw’s haul,” not “everything you own.” That product definition is expressed in a projection.
+
+## A practical debugging method
+
+When a card is wrong:
+
+1. Name the exact disputed field—do not say “the movie is wrong.”
+2. Identify its authority from the table above.
+3. Check the authority’s freshness or live state.
+4. Check the join identity used to project it onto the card.
+5. Only then inspect component rendering.
+
+If a movie lacks an overview but has the correct torrent, inspect TMDB identity/cache joins, not Transmission. If a show is marked missing while Plex is down, inspect whether unknown was coerced to false. If resolution is absent, inspect the release title/provider payload before assuming enrichment failed.
+
+## What v2 should improve
+
+V2 should not chase one global truth table. It should make plural truths explicit through types such as `OperatorIntent`, `AcquisitionAttempt`, `TorrentObservation`, `FileObservation`, `LibraryObservation`, and `MetadataSnapshot`. Each can state source, timestamp, confidence, and qualified identity.
+
+### In plain English
+
+Pirate Claw keeps several notebooks: standing instructions, orders it placed, delivery trucks, and what the librarian found. Combining them would not make the answers truer; it would erase why they differ.
+
+### Key takeaway
+
+Never ask for “the” source of truth without naming the fact. Correctness comes from preserving intent, history, live state, and observation as different things.

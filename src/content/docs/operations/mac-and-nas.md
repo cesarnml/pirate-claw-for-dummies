@@ -1,55 +1,74 @@
 ---
 title: Mac Target, NAS Evidence
-description: Why the NAS matters operationally while an M-series Mac is the product performance target.
+description: Current M1 route measurements, what the NAS taught operationally, and why the two machines answer different questions.
 ---
 
-Pirate Claw has earned operational knowledge on a Synology NAS. That is useful:
-it proves the workflow runs with constrained CPU, storage, and network
-conditions. But the intended customer machine is an M-series Mac mini, so the
-Mac defines the performance bar.
+The Synology NAS is where Pirate Claw accumulated real data and scars. The M-series Mac is the customer performance target. Treating them as interchangeable would either excuse a slow product or discard useful evidence from the harder environment.
 
-## Evidence versus benchmark
+## What each machine can tell us
 
-| Question | NAS is good for | Mac is good for |
-| --- | --- | --- |
-| Does state survive real use? | Yes | Yes |
-| Does a cold route work? | Yes | Yes |
-| What should perceived latency be? | No | Yes |
-| Is polling too expensive? | A warning signal | The decision basis |
-| Is deployment operationally safe? | Yes | Eventually, a packaging rehearsal |
+| Question | NAS | M-series Mac |
+|---|---|---|
+| Does state survive weeks of real use? | Strong evidence | Also testable |
+| Do recovery/adoption paths meet messy history? | Strong evidence | Less history today |
+| What should navigation feel like? | No; hardware is intentionally old | Yes; primary decision basis |
+| Can background work cause contention? | Excellent warning signal | Must validate under target load |
+| Is deployment safe and repeatable? | NAS runbook evidence | Packaging/runbook evidence |
 
-## What to measure on the Mac
+## A current Mac snapshot
 
-- First navigation, warm navigation, and direct deep-link time.
-- Server and daemon request count per route.
-- Hydration and payload size, especially on Discovery pages.
-- Time from a mutation to the UI reaching a stable state.
-- CPU, memory, and event-loop lag while Dashboard polling is active.
-- TMDB, Plex, and Transmission time split, rather than one “page was slow” number.
+Measurements on the MacBook Air M1, 16 GB, Bun 1.4.0 show two stories: local steady-state reads are generally fast, while cold external/enrichment work and payload size remain the meaningful risks.
 
-## DMG path
+| Endpoint | First observed sample | Warm behavior (five samples) | Approx. payload |
+|---|---:|---:|---:|
+| `/api/health` | 2.1 ms | local/fast | 702 B |
+| `/api/config` | 0.9 ms | local/fast | 10 KB |
+| `/api/status` | 134 ms | 65–76 ms | 1 KB |
+| `/api/candidates` | 11 ms | 8–10 ms | 188 KB |
+| `/api/movies` | 7 ms | 5–6 ms | 49 KB |
+| `/api/shows` | 50 ms | about 1 ms after snapshot | 122 KB |
+| movie calendar | 5.2 s | 8–12 ms after cache | 25 KB |
+| TV calendar | 724 ms | about 1–2 ms after cache | 22 KB |
+| Transmission session | 8 ms | local/fast | 335 B |
 
-```mermaid
-flowchart LR
-  Install[Signed & notarized DMG] --> Onboard[First-run setup]
-  Onboard --> Runtime[Managed daemon + web UI]
-  Runtime --> Data[App-support data, config, logs, backups]
-  Runtime --> Update[Signed updater]
-  Entitlement[License entitlement] --> Runtime
-```
+These are observations, not benchmark guarantees. They were not collected across many devices, networks, or cold installs. They are still enough to reject two bad conclusions:
 
-The productization sequence is: stabilize runtime ownership; make data,
-backups, migration, and diagnostics explicit; package and notarize; add updates;
-then add entitlement/payment support. Payment is not a daemon concern. It
-should be a small entitlement service with a signed local license token and a
-thoughtful offline policy.
+1. “The app is slow because the NAS is old.” The Mac shows most local endpoints can be fast.
+2. “The app is fast because warm endpoints are single-digit milliseconds.” The first discovery calls and large hydration payloads remain customer-visible.
 
-## In plain English
+## The NAS contention lesson
 
-The NAS is the old truck that taught us which roads have potholes. The Mac mini
-is the vehicle we are selling. We should learn from the truck without tuning
-the customer experience around its slowest behavior.
+NAS logs recorded severe event-loop lag, repeatedly in the range of roughly 17–28 seconds, while scheduled work and requests competed. A timer firing late proves the process was not scheduled promptly; it does not identify a culprit by itself.
 
-## Key takeaway
+Evidence supports broad scheduling/memory/I/O contention with request amplification. Plex scans are a plausible contributor, not a proven sole cause. This distinction matters: restarting or blaming one service may hide the architecture pattern that multiple background and page-triggered jobs can overlap.
 
-Use the NAS to validate operations. Use the Mac to make performance decisions.
+The response included safer reconciliation cadence, non-overlapping browser pollers, snapshot-backed reads, and caution around bulk Plex work.
+
+## What to measure before launch
+
+For each major route on the Mac:
+
+- cold direct-link time and warm client navigation;
+- daemon call count, including inherited layout calls;
+- slowest dependency and retry count;
+- transferred SvelteKit data and hydration cost on iPad/mobile;
+- event-loop lag and memory while Dashboard is idle;
+- mutation-to-stable-UI time;
+- provider failure and cache-miss behavior;
+- hidden-tab traffic (expected to pause).
+
+For each long operation, measure whether the browser owns it and what happens on disconnect.
+
+## Operational deployment boundaries
+
+NAS web releases should preserve configuration and avoid recreating Transmission/Gluetun unless explicitly required. The downloader’s VPN/network namespace is not collateral deployment state.
+
+Mac local development has its own trap: restarting the web process without the exact session secret and API write-token environment can return HTTP 200 while rendering “Session secret not configured” or “Service unavailable.” Smoke tests must inspect content, not status alone.
+
+### In plain English
+
+The NAS is the overloaded old truck that reveals weak suspension. The Mac is the car customers will drive and therefore sets the speed and comfort target. We learn failure physics from one and product feel from the other.
+
+### Key takeaway
+
+Use the NAS for operational truth and the Mac for performance decisions. Always measure cold provider paths and browser payloads, not only warm daemon latency.

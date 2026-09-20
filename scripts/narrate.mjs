@@ -34,8 +34,17 @@ const all = pages().map((page) => ({ ...page, hash: hash(page) }));
 const stale = all.filter((page) => { const meta = path.join(out, `${page.key}.json`); const audio = path.join(out, `${page.key}.mp3`); if (!fs.existsSync(meta) || !fs.existsSync(audio)) return true; try { return JSON.parse(fs.readFileSync(meta, 'utf8')).hash !== page.hash; } catch { return true; } });
 if (!stale.length) { console.log('Narration is current.'); process.exit(0); }
 fs.mkdirSync(work, { recursive: true }); fs.mkdirSync(out, { recursive: true });
-const job = path.join(work, 'job.json'); fs.writeFileSync(job, JSON.stringify({ voice, outDir: path.join(work, 'wav'), pages: stale }));
-await run(process.execPath, [path.join(root, 'scripts/kokoro-synth.mjs'), job]);
+const requestedWorkers = Number.parseInt(process.env.KOKORO_WORKERS ?? '2', 10);
+const workerCount = Math.max(1, Math.min(Number.isFinite(requestedWorkers) ? requestedWorkers : 2, stale.length));
+const chunks = Array.from({ length: workerCount }, () => []);
+stale.forEach((page, index) => chunks[index % workerCount].push(page));
+const jobs = chunks.map((jobPages, index) => {
+  const job = path.join(work, `job-${index}.json`);
+  fs.writeFileSync(job, JSON.stringify({ voice, outDir: path.join(work, 'wav'), pages: jobPages }));
+  return job;
+});
+console.log(`Synthesizing ${stale.length} track(s) with ${workerCount} worker(s).`);
+await Promise.all(jobs.map((job) => run(process.execPath, [path.join(root, 'scripts/kokoro-synth.mjs'), job])));
 for (const page of stale) {
   const wav = path.join(work, 'wav', `${page.key}.wav`); const timing = path.join(work, 'wav', `${page.key}.timing.json`); const mp3 = path.join(out, `${page.key}.mp3`);
   fs.mkdirSync(path.dirname(mp3), { recursive: true }); await run(ffmpeg, ['-y', '-loglevel', 'error', '-i', wav, '-ac', '1', '-ar', '24000', '-b:a', '48k', mp3]);

@@ -1,49 +1,85 @@
 ---
 title: Observability and Debug Logs
-description: What Pirate Claw already records, how to debug it, and the missing causal links worth solving in v2.
+description: What v1 records, where correlation stops, what logs can leak, and the causal timeline v2 should create.
 ---
 
-When Pirate Claw feels wrong, the operator needs an answer to four questions: what happened, where did it happen, how long did it take, and what changed as a result?
+Pirate Claw’s observability is better than a three-week prototype has any right to be. It is also not yet a support bundle or a complete causal history. Both statements should be true at once.
 
-## What v1 already has
+## What exists
 
-- Daemon health exposes start time, active cycle, recent cycle history, and stress signals.
-- HTTP request logging carries request context through daemon work.
-- Outbound provider calls are wrapped so latency and failure details can be logged safely.
-- Client error reporting captures browser-side failures without making the UI silently disappear.
-- Repositories and ledgers retain meaningful acquisition outcomes after a torrent is gone.
-- Several UI paths preserve last-known-good results when a transient daemon call fails.
-
-## The debug story today
+- Web-to-daemon request IDs.
+- Web and daemon route duration/outcome logs.
+- Daemon stress state attached to route logs.
+- Outbound HTTP duration and status logging.
+- Logical Transmission RPC outcome logging in addition to HTTP status.
+- Event-loop lag detection.
+- Browser render-error forwarding.
+- Navigation timing.
+- Cycle timing artifacts.
+- Durable manual-grab failures and torrent-error observations.
+- Acquisition and outcome ledgers that survive removal from Transmission.
 
 ```mermaid
 flowchart LR
-  UI[Button or page] --> WebLog[Browser/client-error signal]
-  WebLog --> Web[SvelteKit proxy/action]
-  Web --> RequestID[Request ID]
-  RequestID --> DaemonLog[Daemon HTTP/cycle logs]
-  DaemonLog --> External[Transmission, Plex, TMDB, provider logs]
-  DaemonLog --> Ledger[(SQLite outcome/history)]
+  UI[Gesture / navigation] --> WEB[Web request log]
+  WEB --> RID[Request ID]
+  RID --> API[Daemon route log]
+  API --> OUT[Provider / Plex / Transmission timing]
+  API --> DB[(Durable ledgers)]
+  BG[Scheduled background job] --> CYCLE[Cycle artifact + logs]
 ```
 
-## Gaps worth naming honestly
+The broken line in this story is background work: periodic feeds, reconciliation, TMDB/Plex refresh, and adoption do not inherit a user request ID. They have cycle context, but no universal trace that links a user’s earlier grab through later completion and Plex confirmation.
 
-| Gap | Why it matters | Low-risk v2 investigation |
-| --- | --- | --- |
-| No single causal timeline | Hard to connect click to update | Correlation ID visible in UI, web, daemon, and logs |
-| Invalidation is mostly invisible | Broad cascades hide in the browser | Dev-only event and invalidation inspector |
-| Request cost is not summarized per route | “Slow” has no breakdown | Capture count, bytes, p50/p95, and dependency split |
-| Provider behavior is heterogeneous | Retries and failure semantics vary | Provider health cards with last success/failure |
-| Cache freshness is not universally visible | Cached data can look live | Display source and observed-at timestamp where useful |
+## What you can answer today
 
-## Redaction rule
+With logs and data together, an operator can often answer:
 
-Logs should never casually expose provider credentials, Plex tokens, raw authorization headers, private IPs, or personal media paths. Observability is only useful if it is safe to share while debugging.
+- Did the page reach SvelteKit and the daemon?
+- How long did the daemon route take?
+- Was the event loop stressed at the time?
+- Did an outbound provider fail or return no results?
+- Did Transmission reject the logical RPC despite HTTP success?
+- Was a candidate skipped, failed to enqueue, or later reconciled?
+- Did the browser throw during rendering?
 
-## In plain English
+That is real operational leverage.
 
-V1 has useful receipts, but it does not always have a clean movie of the whole incident. V2 should make it easy to see why a click refreshed three panels or why a title stayed unknown without asking an operator to reconstruct events by hand.
+## What still requires hand reconstruction
 
-## Key takeaway
+The desired sentence is:
 
-Logging becomes product-quality observability when it connects user intent, system work, and the eventual visible result.
+> User chose release X; Transmission accepted hash Y; reconciliation observed completion; Plex later confirmed media identity Z.
+
+Today pieces live in two process logs, live Transmission, acquisition ledgers, and Plex caches. Shared identities often make reconstruction possible, but the system does not emit one durable causal timeline.
+
+V2 should append domain events with correlation/causation IDs. That does not require Kafka. A SQLite event table can be enough if events are structured, bounded, and linked to acquisitions.
+
+## Be precise about redaction
+
+Current logging redacts a small list of sensitive query parameters and avoids casually printing some secrets. It does not prove that every hostname, private IP, media title, provider query, response preview, path, header, or body field is safe to share.
+
+Therefore current logs are **operator logs**, not a guaranteed sanitized diagnostic export. A paid product needs a dedicated export pipeline with allowlisted fields, path/IP/token scrubbing, tests with seeded secrets, and an on-screen preview before sharing.
+
+## Logging gaps worth closing for v1
+
+- Emit structured cycle counters: rows scanned/changed, provider calls, skips, and duration.
+- Log skipped job reason and concurrency key.
+- Include cache freshness and whether a response was fresh, stale, or last-known-good.
+- Record the exact downstream effect of important mutations.
+- Document log locations and a manual redaction procedure.
+- Add an operator-visible request ID to actionable error messages.
+
+These improve support without redesigning the system.
+
+## Logs are not metrics
+
+Request logs can later produce route latency, error counts, provider health, and cache-hit rates, but hand-grepping is not the final product. For v2, keep local-first metrics in a bounded SQLite/time-series store and make telemetry opt-in. The owner should be able to see provider health and route slowness without sending media activity anywhere.
+
+### In plain English
+
+V1 has useful receipts from each counter. It does not always staple them into one order folder, and the receipts may contain private operational detail. V2 should create the folder and a safe photocopy process.
+
+### Key takeaway
+
+Observability becomes product-grade when it connects intent to eventual outcome and can be shared safely. V1 is diagnosable; it is not yet fully traceable or sanitized.

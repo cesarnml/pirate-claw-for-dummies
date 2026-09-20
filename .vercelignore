@@ -1,0 +1,6 @@
+.git/
+.astro/
+.tts/
+.vercel/
+dist/
+node_modules/

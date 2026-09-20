@@ -1,54 +1,87 @@
 ---
-title: Value and Pricing Experiment
-description: What the NAS outcome says about Pirate Claw's v1 value proposition and a sensible launch price.
+title: Value and Pricing
+description: What three weeks and a real Plex library prove, what they do not, and how to price the first commercial experiment.
 ---
 
-This is a product hypothesis grounded in a real operational result, not a promise that every library or provider will behave the same way.
+Pirate Claw moved from NAS development around August 27 to a substantial working control plane in roughly 120 development hours—about three weeks of concentrated work. That speed is evidence of a sharp problem definition and effective iteration. It is not evidence that the product is cheap to support forever.
 
-## The late-August to September snapshot
+## The library outcome
 
-Using a read-only Plex library count from August 27 through September 19, 2026, the NAS shows:
+A read-only Plex database snapshot for August 27 through September 19, 2026 showed:
 
-| Library addition | Count |
-| --- | ---: |
+| Added record | Count |
+|---|---:|
 | Movies | 589 |
-| Newly added shows | 32 |
-| New seasons | 120 |
-| New episodes | 883 |
-| Playable additions: movies + episodes | **1,472** |
+| Show containers | 32 |
+| Season containers | 120 |
+| Episodes | 883 |
+| Playable items: movies + episodes | **1,472** |
 
-That is about 61 playable additions a day across roughly 24 days. The attribution that these new Plex additions were acquired through Pirate Claw is an operator assertion; Plex's database proves the additions and their dates, not which software made each decision.
+That is about 61 playable additions per day across roughly 24 days. Movies plus episodes is the defensible playable count; adding show and season containers again would double-count organization records.
 
-## The real value proposition
+Plex proves that those items appeared and when. The statement that all additions came through Pirate Claw is an operator assertion supported by the workflow, not a fact Plex can independently prove. The correct claim is still strong: one real operator used the system at meaningful volume and ended with a materially larger Plex library.
 
-Pirate Claw's value is not the raw number. The number proves the workflow can operate at meaningful volume. The product value is that a person can:
+## What customers are paying for
 
-- Discover releases from several routes without living inside disparate provider sites.
-- Review a specific release before it is queued.
-- See live Transmission state and act on it.
-- Keep history after torrents disappear.
-- Understand whether Plex actually sees the result.
-- Recover or recognize files through adoption instead of losing track of them.
+Not a magnet button. Not posters. Not another view of Plex.
 
-That is a local media-operations product for users who are responsible for their own providers, content rights, and library setup. It is not merely a prettier torrent client or merely a Plex skin.
+They are paying to collapse a fragmented operating loop into one place:
 
-## Price recommendation
+- continuous discovery from feeds and calendars;
+- fast human review when release ambiguity matters;
+- canonical identity instead of title guessing;
+- provider fallback;
+- downloader control and season-pack file selection;
+- durable history after torrents disappear;
+- recovery/adoption when history is incomplete;
+- Plex-backed verification of the result.
 
-For v1, my recommendation is a **$99 one-time founder license for one Mac**, including the v1 release and twelve months of maintenance updates. It is simple enough to sell without turning the November 1 release into a payments-platform project.
+The value is time saved **plus confidence**. A fully automated tool saves clicks but can create cleanup. A manual torrent client offers control but no workflow memory. Pirate Claw’s niche is guided automation.
 
-After v1 has real customer support data, a plausible v2 model is **$12/month or $99/year** for ongoing provider compatibility, metadata changes, diagnostics, and support. I would avoid a lifetime license until the cost of maintaining provider integrations and commercial metadata terms is understood.
+## What one operator does not prove
 
-The surrounding Mac media market supports paying for polished local-library software: Infuse Pro currently lists a $16.99 annual plan and a $99.99 lifetime option, while Plex's paid plan is a distinct premium layer around an established media server. [Infuse pricing](https://apps.firecore.com/infuse-pro) and [Plex Pass overview](https://support.plex.tv/articles/202526943-plex-free-vs-paid/)
+- cold-install conversion;
+- willingness to pay across a market;
+- support minutes per user;
+- how often providers break;
+- whether metadata licensing makes the price viable;
+- retention after the initial library-building burst;
+- whether customers trust the product with files and deletion.
 
-## What validates the price
+Those unknowns argue for a founder cohort, not a confident mass-market subscription forecast.
 
-- A short trial that proves first-run setup and one successful workflow.
-- A clear compatibility matrix for Plex, Transmission, and metadata setup.
-- Support burden per active user.
-- How often providers require fixes.
-- Whether users value human-guided review enough to pay for it.
-- Whether Mac packaging makes setup meaningfully easier than self-hosting.
+## Pricing recommendation
 
-## Key takeaway
+My recommendation remains a **$99 one-time founder license for one Mac**, with v1 and twelve months of maintenance updates. Cap the cohort and make the terms explicit. The purpose is to learn onboarding, support load, and willingness to pay without promising “lifetime” maintenance against changing providers.
 
-The early number says Pirate Claw has created substantial operational value quickly. A $99 founder license is a serious but low-complexity way to test willingness to pay while v1 stays focused on shipping.
+Why not start at $12/month? The current product is local-first, early, and not yet backed by an ongoing cloud service whose value is obvious each month. Subscription can feel like rent on the owner’s own Mac. A founder license better matches the first experiment.
+
+Why not $29? If Pirate Claw safely replaces dozens of hours of fragmented discovery, tracking, and cleanup, bargain pricing attracts support demand without testing the real value proposition.
+
+After one year of evidence, options include:
+
+- paid major upgrades;
+- optional $99/year maintenance/support;
+- a subscription tier if provider compatibility, remote access, shared cloud services, or ongoing discovery intelligence creates recurring value.
+
+Avoid a lifetime license until provider and metadata costs are understood.
+
+## Metrics that should decide the next price
+
+- trial-to-success: did the user acquire and verify one item?
+- time from install to first successful Plex confirmation;
+- support minutes and interventions per activated Mac;
+- provider failure frequency and repair cost;
+- weekly active discovery/grab behavior after the first month;
+- acquisition success and duplicate/cleanup rate;
+- refund reasons and “I would be very disappointed” survey response.
+
+Volume is a compelling case study. Repeatable setup and low support burden create a business.
+
+### In plain English
+
+One power user has proved the machine can do serious work. They have not yet proved that strangers can install it, trust it, and need little help. Charge enough to learn from a small serious cohort without promising forever.
+
+### Key takeaway
+
+The strongest value claim is guided, verifiable media operations. Use a $99 founder license as a learning instrument, not as a declaration that market and margins are solved.
